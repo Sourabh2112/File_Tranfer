@@ -3,7 +3,8 @@ const http = require("http");
 var bcrypt = require("bcrypt");
 // var nodemailer = require("nodemailer");
 const mongoose = require('mongoose');
-const users = require('./model/user-model.js');
+const users = require('./model/userModel.js');
+const userRouter = require('./Routes/userRoute.js')
 
 const app = express();
 const server = http.createServer(app);
@@ -55,11 +56,7 @@ app.use(function (request, result, next) {
     next();
 });
 
-app.get("/", (req, res) => {
-  res.render("index",{
-    "request":req
-  });
-});
+app.use("/", userRouter);
 
 app.get("/Register", function (req, res) {
     res.render("Register", {
