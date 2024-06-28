@@ -1,10 +1,10 @@
 const express = require('express');
-const {homepage , Register} = require('../Controllers/userController')
+const {homepage , Register, Registerpage} = require('../Controllers/userController')
 
 const userRouter = express.Router();
 
 userRouter.get("/", homepage);
-userRouter.get("/Register", Register);
-userRouter.post("/Register");
+userRouter.get("/Register", Registerpage);
+userRouter.post("/Register", Register);
 
 module.exports = userRouter;
