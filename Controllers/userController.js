@@ -6,4 +6,10 @@ const homepage = (req, res) => {
     });
 }
 
-module.exports = homepage;
+const Register = (req,res) =>{
+  res.render("Register", {
+    "request": req
+  });
+}
+
+module.exports = {homepage, Register};

@@ -58,12 +58,6 @@ app.use(function (request, result, next) {
 
 app.use("/", userRouter);
 
-app.get("/Register", function (req, res) {
-    res.render("Register", {
-        "request": req
-    });
-});
-
 app.post("/Register", async function (request, result) {
 
     var name = request.fields.name;
