@@ -1,3 +1,4 @@
+// const { response } = require('express');
 const users = require('../model/userModel');
 var bcrypt = require("bcrypt");
 
@@ -50,4 +51,48 @@ const Register = async (request,result) =>{
   }
 }
 
-module.exports = {homepage, Register, Registerpage};
+const Loginpage = (req,res) =>{
+  res.render("Login", {
+    "request" : req
+  });
+}
+
+const Login = async (request, result) =>{
+    var email = request.fields.email;
+    var password = request.fields.password;
+
+    var user = await users.findOne({
+        "email": email
+    });
+
+    if (user == null) {
+        request.status = "error";
+        request.message = "Email does not exist.";
+        result.render("Login", {
+            "request": request
+        });
+        return false;
+    }
+
+    bcrypt.compare(password, user.password, function (error, isVerify) {
+        if (isVerify) {
+            request.session.user = user;
+            result.redirect("/");
+
+            return false;
+        }
+
+        request.status = "error";
+        request.message = "Password is not correct.";
+        result.render("Login", {
+            "request": request
+        });
+    });
+}
+
+const Logout = (req,res) =>{
+  req.session.destroy();
+  res.redirect("/");
+}
+
+module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout};
