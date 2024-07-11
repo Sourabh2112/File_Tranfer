@@ -3,7 +3,7 @@ const http = require("http");
 var bcrypt = require("bcrypt");
 // var nodemailer = require("nodemailer");
 const mongoose = require('mongoose');
-const users = require('./model/userModel.js');
+// const users = require('./model/userModel.js');
 const userRouter = require('./Routes/userRoute.js')
 
 const app = express();
@@ -22,7 +22,7 @@ var formidable = require("express-formidable");
 app.use(formidable());
 
 var nodemailerFrom = ("sourabhsbg01@gmail.com");
-var odemailerObject = {
+var nodemailerObject = {
     services: "gmail",
     host: "smtp.gmail.com",
     port: 465,
@@ -37,9 +37,9 @@ app.set("view engine", "ejs");
 
 app.use("/public/css", express.static(__dirname + "/public/css"));
 app.use("/public/js", express.static(__dirname + "/public/js"));
-// app.use("/public/img", express.static(__dirname + "/public/img"));
+app.use("/public/img", express.static(__dirname + "/public/img"));
 app.use("/public/font-awesome-4.7.0", express.static(__dirname + "/public/font-awesome-4.7.0"));
-// app.use("/public/fonts", express.static(__dirname + "/public/fonts"));
+app.use("/public/fonts", express.static(__dirname + "/public/fonts"));
 
 var session = require("express-session");
 app.use(session({

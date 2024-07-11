@@ -95,4 +95,23 @@ const Logout = (req,res) =>{
   res.redirect("/");
 }
 
-module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout};
+const MyUploads = async (request, result) =>{
+  if (request.session.user) {
+
+    var user = await users.findOne({
+        "_id": ObjectId(request.session.user._id)
+    });
+
+    var uploaded = user.uploaded;
+
+    result.render("MyUploads", {
+        "request": request,
+        "uploaded": uploaded
+    });
+    return false;
+}
+
+result.redirect("/Login");
+}
+
+module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout, MyUploads};
