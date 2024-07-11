@@ -1,6 +1,8 @@
 // const { response } = require('express');
+const { ObjectId } = require('mongodb');
 const users = require('../model/userModel');
 var bcrypt = require("bcrypt");
+const fileSystem = require("fs");
 
 const homepage = (req, res) => {
     res.render("index",{
@@ -95,23 +97,103 @@ const Logout = (req,res) =>{
   res.redirect("/");
 }
 
-const MyUploads = async (request, result) =>{
-  if (request.session.user) {
+const ViewMyUploads = async (request, result) => {
+    if (request.session.user) {
+      try {
+        var user = await users.findOne({
+            "_id": new ObjectId(request.session.user._id) 
+        });
+  
+        if (user) {
+          var uploaded = user.uploaded;
+  
+          result.render("MyUploads", {
+              "request": request,
+              "uploaded": uploaded
+          });
+        } else {
+          result.status(404).send("User not found");
+        }
+      } catch (error) {
+        console.error("Error retrieving user data:", error);
+        result.status(500).send("An error occurred while retrieving your uploads.");
+      }
+    } else {
+      result.redirect("/Login");
+    }
+  };
 
-    var user = await users.findOne({
-        "_id": ObjectId(request.session.user._id)
-    });
+const UploadFile = async(request, result) =>{
+    if (request.session.user) {
 
-    var uploaded = user.uploaded;
+        var user = await users.findOne({
+            "_id": new ObjectId(request.session.user._id)
+        });
+        
+        if (request.files.file.size > 0) {
 
-    result.render("MyUploads", {
-        "request": request,
-        "uploaded": uploaded
-    });
-    return false;
+            const _id = request.fields._id;
+
+            var uploadedObj = {
+                "_id": new ObjectId(),
+                "size": request.files.file.size, // in bytes
+                "name": request.files.file.name,
+                "type": request.files.file.type,
+                "filePath": "",
+                "createdAt": new Date().getTime()
+            };
+
+            var filePath = "public/uploads/" + user.email + "/" + new Date().getTime() + "-" + request.files.file.name;
+            uploadedObj.filePath = filePath;
+
+            if (!fileSystem.existsSync("public/uploads/" + user.email)){
+                fileSystem.mkdirSync("public/uploads/" + user.email);
+            }
+
+            // Read the file
+            fileSystem.readFile(request.files.file.path, function (err, data) {
+                if (err) throw err;
+                console.log('File read!');
+
+                // Write the file
+                fileSystem.writeFile(filePath, data, async function (err) {
+                    if (err) throw err;
+                    console.log('File written!');
+
+                    await users.updateOne({
+                        "_id": new ObjectId(request.session.user._id)
+                    }, {
+                        $push: {
+                            "uploaded": uploadedObj
+                        }
+                    });
+
+                    request.session.status = "success";
+                    request.session.message = "Image has been uploaded. Try our premium version for image compression.";
+
+                    result.redirect("/MyUploads/" + _id);
+                });
+
+                // Delete the file
+                fileSystem.unlink(request.files.file.path, function (err) {
+                    if (err) throw err;
+                    console.log('File deleted!');
+                });
+            });
+            
+        } else {
+            request.status = "error";
+            request.message = "Please select valid image.";
+
+            result.render("MyUploads", {
+                "request": request
+            });
+        }
+
+        return false;
+    }
+
+    result.redirect("/Login");   
 }
 
-result.redirect("/Login");
-}
-
-module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout, MyUploads};
+module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile};
