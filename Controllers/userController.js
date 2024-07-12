@@ -1,8 +1,8 @@
-// const { response } = require('express');
 const { ObjectId } = require('mongodb');
 const users = require('../model/userModel');
 var bcrypt = require("bcrypt");
 const fileSystem = require("fs");
+const { removeFileReturnUpdated } = require('./functionController');
 
 const homepage = (req, res) => {
     res.render("index",{
@@ -121,7 +121,7 @@ const ViewMyUploads = async (request, result) => {
     } else {
       result.redirect("/Login");
     }
-  };
+}
 
 const UploadFile = async(request, result) =>{
     if (request.session.user) {
@@ -196,4 +196,33 @@ const UploadFile = async(request, result) =>{
     result.redirect("/Login");   
 }
 
-module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile};
+const DeleteFile = async(request,result) =>{
+        const _id = request.fields._id;
+
+        if (request.session.user) {
+            var user = await users.findOne({
+                "_id": new ObjectId(request.session.user._id)
+            });
+
+            var updatedArray = await removeFileReturnUpdated(user.uploaded, _id);
+            for (var a = 0; a < updatedArray.length; a++) {
+                updatedArray[a]._id = new ObjectId(updatedArray[a]._id);
+            }
+
+            await users.updateOne({
+                "_id": new ObjectId(request.session.user._id)
+            }, {
+                $set: {
+                    "uploaded": updatedArray
+                }
+            });
+
+            const backURL = request.header('Referer') || '/';
+            result.redirect(backURL);
+            return false;
+        }
+
+        result.redirect("/Login");
+}
+
+module.exports = {homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile};

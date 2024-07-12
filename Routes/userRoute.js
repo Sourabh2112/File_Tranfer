@@ -1,5 +1,5 @@
 const express = require('express');
-const {homepage , Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile} = require('../Controllers/userController')
+const {homepage , Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile} = require('../Controllers/userController')
 
 const userRouter = express.Router();
 
@@ -11,5 +11,6 @@ userRouter.post("/Login", Login);
 userRouter.get("/Logout", Logout);
 userRouter.get("/MyUploads", ViewMyUploads);
 userRouter.post("/UploadFile", UploadFile)
+userRouter.post("/DeleteFile", DeleteFile)
 
 module.exports = userRouter;
