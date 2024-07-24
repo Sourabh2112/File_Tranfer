@@ -24,4 +24,28 @@ function removeFileReturnUpdated(arr, _id) {
     return arr;
 }
 
-module.exports = { removeFileReturnUpdated };
+function recursiveGetFile (files, _id) {
+    var singleFile = null;
+
+    for (var a = 0; a < files.length; a++) {
+        const file = files[a];
+
+        // return if file type is not folder and ID is found
+        if (file.type != "folder") {
+            if (file._id == _id) {
+                return file;
+            }
+        }
+
+        // if it is a folder and have files, then do the recursion
+        if (file.type == "folder" && file.files.length > 0) {
+            singleFile = recursiveGetFile(file.files, _id);
+            // return the file if found in sub-folders
+            if (singleFile != null) {
+                return singleFile;
+            }
+        }
+    }
+}
+
+module.exports = { removeFileReturnUpdated, recursiveGetFile};
