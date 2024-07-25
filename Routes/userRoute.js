@@ -1,5 +1,5 @@
 const express = require('express');
-const {homepage , Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile} = require('../Controllers/userController')
+const { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink } = require('../Controllers/userController')
 
 const userRouter = express.Router();
 
@@ -10,8 +10,9 @@ userRouter.get("/Login", Loginpage);
 userRouter.post("/Login", Login);
 userRouter.get("/Logout", Logout);
 userRouter.get("/MyUploads", ViewMyUploads);
-userRouter.post("/UploadFile", UploadFile)
-userRouter.post("/DeleteFile", DeleteFile)
-userRouter.post("/DownloadFile", DownloadFile)
+userRouter.post("/UploadFile", UploadFile);
+userRouter.post("/DeleteFile", DeleteFile);
+userRouter.post("/DownloadFile", DownloadFile);
+userRouter.post("/ShareViaLink", ShareViaLink)
 
 module.exports = userRouter;

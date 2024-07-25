@@ -1,8 +1,13 @@
 const { ObjectId } = require('mongodb');
 const users = require('../model/userModel');
+const PublicLink = require('../model/publicLinkMOdel');
 var bcrypt = require("bcrypt");
 const fileSystem = require("fs");
+const mongoose = require('mongoose');
+
 const { removeFileReturnUpdated, recursiveGetFile } = require('./functionController');
+
+const mainURL = "http://localhost:3000";
 
 const homepage = (req, res) => {
     res.render("index", {
@@ -227,6 +232,27 @@ const DeleteFile = async (request, result) => {
 
 const DownloadFile = async (request, result) => {
     const _id = request.fields._id;
+
+    // var link = await database.collection("public_links").findOne({
+    //     "file._id": ObjectId(_id)
+    // });
+
+    // if (link != null) {
+    //     fileSystem.readFile(link.file.filePath, function (error, data) {
+    //         // console.log(error);
+
+    //         result.json({
+    //             "status": "success",
+    //             "message": "Data has been fetched.",
+    //             "arrayBuffer": data,
+    //             "fileType": link.file.type,
+    //             // "file": mainURL + "/" + file.filePath,
+    //             "fileName": link.file.name
+    //         });
+    //     });
+    //     return false;
+    // }
+
     if (request.session.user) {
 
         var user = await users.findOne({
@@ -266,4 +292,51 @@ const DownloadFile = async (request, result) => {
     return false;
 }
 
-module.exports = { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile };
+const ShareViaLink = async (request, result) => {
+    const _id = request.fields._id;
+
+    if (request.session.user) {
+        var user = await users.findOne({
+            "_id": new ObjectId(request.session.user._id)
+        });
+        var file = await recursiveGetFile(user.uploaded, _id);
+
+        if (file == null) {
+            request.session.status = "error";
+            request.session.message = "File does not exists";
+
+            const backURL = request.header("Referer") || "/";
+
+            result.redirect(backURL);
+            return false;
+        }
+
+        
+        bcrypt.hash(file.name, 10, async function (error, hash) {
+            hash = hash.substring(10, 20);
+            const link = mainURL + "/SharedViaLink/" + hash;
+            await PublicLink.create({
+                "hash": hash,
+                "file": file,
+                "uploadedBy": {
+                    "_id": user._id,
+                    "name": user.name,
+                    "email": user.email
+                },
+                "createdAt": new Date().getTime()
+            });
+
+            request.session.status = "success";
+            request.session.message = "Share link: " + link;
+
+            const backURL = request.header("Referer") || "/";
+            result.redirect(backURL);
+        });
+
+        return false;
+    }
+
+    result.redirect("/Login");
+}
+
+module.exports = { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink };

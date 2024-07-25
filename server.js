@@ -78,6 +78,11 @@ app.get("/Blog", async function (request, result) {
   });
 });
 
+app.get("/SharedWithMe/:_id?", async function (request, result) {
+  result.render("SharedWithMe", {
+    "request": request
+  });
+});
 
 
 mongoose
