@@ -58,6 +58,27 @@ app.use(function (request, result, next) {
 
 app.use("/", userRouter);
 
+app.get("/pro-versions", function (request, result) {
+  result.render("proVersions", {
+    "request": request
+  });
+});
+
+app.get("/Admin", async function (request, result) {
+  // render an HTML page with number of pages, and posts data
+  result.render("Admin", {
+    request: request
+  });
+});
+
+app.get("/Blog", async function (request, result) {
+  // render an HTML page with number of pages, and posts data
+  result.render("Blog", {
+    request: request
+  });
+});
+
+
 
 mongoose
   .connect(
