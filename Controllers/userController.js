@@ -311,7 +311,7 @@ const ShareViaLink = async (request, result) => {
             return false;
         }
 
-        
+
         bcrypt.hash(file.name, 10, async function (error, hash) {
             hash = hash.substring(10, 20);
             const link = mainURL + "/SharedViaLink/" + hash;
@@ -339,4 +339,88 @@ const ShareViaLink = async (request, result) => {
     result.redirect("/Login");
 }
 
-module.exports = { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink };
+const DownloadLink = async (request, result) => {
+    const hash = request.params.hash;
+
+    var link = await PublicLink.findOne({
+        "hash": hash
+    });
+
+    if (link == null) {
+        request.session.status = "error";
+        request.session.message = "Link expired.";
+
+        result.render("SharedViaLink", {
+            "request": request
+        });
+        return false;
+    }
+
+    result.render("SharedViaLink", {
+        "request": request,
+        "link": link
+    });
+}
+
+const DelteLink = async function (request, result) {
+    const _id = request.fields._id;
+
+    if (request.session.user) {
+        var link = await PublicLink.findOne({
+            $and: [{
+                "uploadedBy._id": new ObjectId(request.session.user._id)
+            }, {
+                "_id": new ObjectId(_id)
+            }]
+        });
+
+        if (link == null) {
+            request.session.status = "error";
+            request.session.message = "Link does not exists.";
+
+            const backURL = request.header("Referer") || "/";
+            result.redirect(backURL);
+            return false;
+        }
+
+        await PublicLink.deleteOne({
+            $and: [{
+                "uploadedBy._id": new ObjectId(request.session.user._id)
+            }, {
+                "_id": new ObjectId(_id)
+            }]
+        });
+
+        request.session.status = "success";
+        request.session.message = "Link has been deleted.";
+
+        const backURL = request.header("Referer") || "/";
+        result.redirect(backURL);
+        return false;
+    }
+
+    result.redirect("/Login");
+};
+
+const MySharedLinks = async function (request, result) {
+    if (request.session.user) {
+        try {
+            const links = await PublicLink.find({
+                "uploadedBy._id": request.session.user._id
+            }).exec();
+
+            result.render("MySharedLinks", {
+                "request": request,
+                "links": links
+            });
+        } catch (error) {
+            console.error("Error fetching links:", error);
+            result.status(500).send("An error occurred while fetching shared links.");
+        }
+        return;
+    }
+
+    result.redirect("/Login");
+};
+
+module.exports = { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink, DownloadLink, MySharedLinks, DelteLink };
