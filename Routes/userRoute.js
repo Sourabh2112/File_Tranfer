@@ -1,5 +1,5 @@
 const express = require('express');
-const { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink, DownloadLink, MySharedLinks, DelteLink } = require('../Controllers/userController')
+const { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink, DownloadLink, MySharedLinks, DelteLink, search } = require('../Controllers/userController')
 
 const userRouter = express.Router();
 
@@ -17,5 +17,6 @@ userRouter.post("/ShareViaLink", ShareViaLink);
 userRouter.get("/SharedViaLink/:hash", DownloadLink);
 userRouter.get("/MySharedLinks", MySharedLinks);
 userRouter.post("/DeleteLink", DelteLink);
+userRouter.get("/search", search)
 
 module.exports = userRouter;

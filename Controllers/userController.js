@@ -5,7 +5,7 @@ var bcrypt = require("bcrypt");
 const fileSystem = require("fs");
 const mongoose = require('mongoose');
 
-const { removeFileReturnUpdated, recursiveGetFile } = require('./functionController');
+const { removeFileReturnUpdated, recursiveGetFile, recursiveSearch, recursiveSearchShared } = require('./functionController');
 
 const mainURL = "http://localhost:3000";
 
@@ -423,4 +423,39 @@ const MySharedLinks = async function (request, result) {
     result.redirect("/Login");
 };
 
-module.exports = { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink, DownloadLink, MySharedLinks, DelteLink };
+const search = async function (request, result) {
+    const search = request.query.search;
+
+    if (request.session.user) {
+        var user = await users.findOne({
+            "_id": new ObjectId(request.session.user._id)
+        });
+        
+        var fileUploaded = await recursiveSearch(user.uploaded, search);
+        var fileShared = await recursiveSearchShared(user.sharedWithMe, search);
+
+        // check if file is uploaded or shared with user
+        if (fileUploaded == null && fileShared == null) {
+            request.status = "error";
+            request.message = "File/folder '" + search + "' is neither uploaded nor shared with you.";
+
+            result.render("Search", {
+                "request": request
+            });
+            return false;
+        }
+
+        var file = (fileUploaded == null) ? fileShared : fileUploaded;
+        file.isShared = (fileUploaded == null);
+        result.render("Search", {
+            "request": request,
+            "file": file
+        });
+
+        return false;
+    }
+
+    result.redirect("/Login");
+}
+
+module.exports = { homepage, Register, Registerpage, Loginpage, Login, Logout, ViewMyUploads, UploadFile, DeleteFile, DownloadFile, ShareViaLink, DownloadLink, MySharedLinks, DelteLink, search };
